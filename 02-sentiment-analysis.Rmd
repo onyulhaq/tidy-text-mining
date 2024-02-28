@@ -76,7 +76,7 @@ library(stringr)
 tidy_books <- austen_books() %>%
   group_by(book) %>%
   mutate(
-    linenumber = row_number(),
+    linenumber = 1:nrow(.),
     chapter = cumsum(str_detect(text, 
                                 regex("^chapter [\\divxlc]", 
                                       ignore_case = TRUE)))) %>%
@@ -94,18 +94,8 @@ nrc_joy <- get_sentiments("nrc") %>%
 
 tidy_books %>%
   filter(book == "Emma") %>%
-  inner_join(nrc_joy) %>%
-  count(word, sort = TRUE)
-```
-
-```{r nrcjoy, echo = FALSE, dependson = "tidy_books"}
-nrc_joy <- nrc %>% 
-  filter(sentiment == "joy")
-
-tidy_books %>%
-  filter(book == "Emma") %>%
-  inner_join(nrc_joy) %>%
-  count(word, sort = TRUE)
+  inner_join(nrc_joy, by ="word") %>%
+  dplyr::count(word, sort = TRUE)
 ```
 
 We see mostly positive, happy words about hope, friendship, and love here. We also see some words that may not be used joyfully by Austen ("found", "present"); we will discuss this in more detail in Section \@ref(most-positive-negative).
@@ -125,7 +115,7 @@ library(tidyr)
 
 jane_austen_sentiment <- tidy_books %>%
   inner_join(get_sentiments("bing")) %>%
-  count(book, index = linenumber %/% 80, sentiment) %>%
+  dplyr::count(book, index = linenumber %/% 80, sentiment) %>%
   pivot_wider(names_from = sentiment, values_from = n, values_fill = 0) %>% 
   mutate(sentiment = positive - negative)
 ```
